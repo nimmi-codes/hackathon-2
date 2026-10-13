@@ -11,6 +11,8 @@ const allowed = (process.env.CLIENT_ORIGIN || 'http://localhost:5173')
 
 app.use(
   cors({
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     origin: (origin, cb) => {
       // allow non-browser tools (no origin) and whitelisted origins
       if (!origin || allowed.includes(origin)) return cb(null, true);
@@ -23,6 +25,7 @@ app.use(express.json());
 app.get('/', (req, res) => res.json({ status: 'ok', service: 'waste-management-api' }));
 app.use('/api/routes', require('./routes/routes'));
 app.use('/api/reports', require('./routes/reports'));
+app.use('/api/admin', require('./routes/admin'));
 
 const PORT = process.env.PORT || 5000;
 

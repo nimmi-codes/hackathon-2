@@ -58,3 +58,6 @@ Report status (`Pending` / `In Progress` / `Resolved`) is changed directly in At
 Note: Render's free tier sleeps when idle; the first request may take ~30–60s.
 
 Seed data is sample data for demonstration, not official council schedules.
+
+## Staff portal
+Open `/staff` and sign in with the `ADMIN_PASSWORD` set in the backend environment (local: `backend/.env`; Render: add `ADMIN_PASSWORD` and `TOKEN_SECRET`). Staff can add/edit/delete routes and update report status (`/api/admin/*`, protected by a signed token valid for 8 hours).
