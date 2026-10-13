@@ -44,20 +44,21 @@ Report status (`Pending` / `In Progress` / `Resolved`) is changed directly in At
 3. Root Directory: `backend` · Build: `npm install` · Start: `npm start`.
 4. Environment variables:
    - `MONGO_URI` = Atlas connection string
-   - `CLIENT_ORIGIN` = your Netlify URL (e.g. `https://your-site.netlify.app`, no trailing slash) – add after step below, then redeploy
+   - `ADMIN_PASSWORD` = staff portal password
+   - (CORS needs no setting: `localhost` and `*.netlify.app` origins are allowed automatically)
    - (`PORT` is provided by Render automatically)
 5. In Atlas → Network Access, allow `0.0.0.0/0` (Render has no fixed IP on the free tier).
 6. Seed the data once from your machine (with `.env` pointing at Atlas): `npm run seed`.
 
 ### Frontend → Netlify
 1. Netlify → Add new site → Import from GitHub → this repo.
-2. Base directory: `frontend` · Build command: `npm run build` · Publish directory: `frontend/dist`.
+2. Base directory: `frontend` · Build command: `npm run build` · Publish directory: `dist` (relative to the base directory; also set in `frontend/netlify.toml`).
 3. Environment variable: `VITE_API_URL` = your Render URL (e.g. `https://waste-api.onrender.com`).
-4. Deploy, then put the Netlify URL into Render's `CLIENT_ORIGIN` and redeploy the backend.
+4. Deploy. No backend change is needed for CORS.
 
 Note: Render's free tier sleeps when idle; the first request may take ~30–60s.
 
 Seed data is sample data for demonstration, not official council schedules.
 
 ## Staff portal
-Open `/staff` and sign in with the `ADMIN_PASSWORD` set in the backend environment (local: `backend/.env`; Render: add `ADMIN_PASSWORD` and `TOKEN_SECRET`). Staff can add/edit/delete routes and update report status (`/api/admin/*`, protected by a signed token valid for 8 hours).
+Open `/staff` and sign in with the `ADMIN_PASSWORD` set in the backend environment (local: `backend/.env`; Render: add `ADMIN_PASSWORD`). Staff can add/edit/delete routes and update report status (`/api/admin/*`, protected by a signed token valid for 8 hours).

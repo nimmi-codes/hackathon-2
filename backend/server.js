@@ -5,17 +5,20 @@ const mongoose = require('mongoose');
 
 const app = express();
 
-const allowed = (process.env.CLIENT_ORIGIN || 'http://localhost:5173')
-  .split(',')
-  .map((s) => s.trim().replace(/\/$/, ''));
+// No env config needed for CORS: allow local dev (any port) and Netlify-hosted sites.
+// Staff routes are protected by a signed token, not by origin.
+const ALLOWED_ORIGINS = [
+  /^http:\/\/(localhost|127\.0\.0\.1):\d+$/,
+  /^https:\/\/[a-z0-9-]+(--[a-z0-9-]+)?\.netlify\.app$/i,
+];
 
 app.use(
   cors({
     allowedHeaders: ['Content-Type', 'Authorization'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     origin: (origin, cb) => {
-      // allow non-browser tools (no origin) and whitelisted origins
-      if (!origin || allowed.includes(origin)) return cb(null, true);
+      // no Origin header = non-browser tool (curl, health checks)
+      if (!origin || ALLOWED_ORIGINS.some((re) => re.test(origin))) return cb(null, true);
       cb(new Error(`CORS blocked: ${origin}`));
     },
   })
@@ -34,13 +37,16 @@ if (!process.env.MONGO_URI) {
   process.exit(1);
 }
 
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => {
+app.listen(PORT, () => console.log(`API running on port ${PORT}`));
+
+// Retry instead of exiting: a brief DNS/network blip must not take the API down
+async function connectWithRetry() {
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
     console.log('MongoDB connected');
-    app.listen(PORT, () => console.log(`API running on port ${PORT}`));
-  })
-  .catch((err) => {
-    console.error('MongoDB connection error:', err.message);
-    process.exit(1);
-  });
+  } catch (err) {
+    console.error('MongoDB connection error:', err.message, '- retrying in 5s');
+    setTimeout(connectWithRetry, 5000);
+  }
+}
+connectWithRetry();
